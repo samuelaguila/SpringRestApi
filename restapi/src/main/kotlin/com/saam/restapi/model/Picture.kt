@@ -3,31 +3,27 @@ package com.saam.restapi.model
 import javax.persistence.*
 
 @Entity
-@Table(name = "candidates")
-data class Candidate(
+@Table(name = "picture")
+data class Picture(
 
-        @Id
-        @GeneratedValue(strategy = GenerationType.AUTO)
-        val id: Int? = null,
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    val id: Int? = null,
 
-        @Column(name = "picture_name")
-        var pictureName: String,
+    @Column(name = "picture_name")
+    var pictureName: String,
 
-        @Column(name = "profile_picture")
-        val pictureType: String,
+    @Column(name = "profile_picture")
+    val pictureType: String,
 
-        @Column(name = "profile_Uri")
-        var pictureUri: String? = null,
-
-        @Lob
-        var data: ByteArray,
-
+    @Lob
+    var data: ByteArray,
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Candidate
+        other as Picture
 
         if (id != other.id) return false
         if (pictureName != other.pictureName) return false
@@ -44,6 +40,7 @@ data class Candidate(
         result = 31 * result + data.contentHashCode()
         return result
     }
+
 
 }
 

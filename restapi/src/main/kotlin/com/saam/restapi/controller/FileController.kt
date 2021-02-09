@@ -1,9 +1,10 @@
 package com.saam.restapi.controller
 
 import com.saam.restapi.exceptions.FileStorageException
-import com.saam.restapi.model.Candidate
+import com.saam.restapi.model.Picture
+import com.saam.restapi.model.PictureUri
 import com.saam.restapi.payload.UploadFileResponse
-import com.saam.restapi.service.CandidateStorageService
+import com.saam.restapi.service.PictureStorageService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.core.io.Resource
@@ -21,25 +22,25 @@ import java.io.IOException
 class FileController {
 
     @Autowired
-    private lateinit var storageService: CandidateStorageService
+    private lateinit var storageService: PictureStorageService
 
     @GetMapping("/list")
     @Throws(IOException::class)
-    fun list(): ResponseEntity<MutableList<Candidate>> {
+    fun list(): ResponseEntity<List<PictureUri>> {
         return ResponseEntity(storageService.getAllFiles(), HttpStatus.OK)
     }
 
     @GetMapping("/downloadFile/{fileId}")
     fun downloadFile (@PathVariable fileId: String): ResponseEntity<Resource> {
 
-        // Load file from database
-        val candidate = storageService.getFile(fileId)
+    // Load file from database
+    val candidate = storageService.getFile(fileId)
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(candidate.pictureType))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + candidate.pictureName + "\""
-                )
-                .body(ByteArrayResource(candidate.data))
+    return ResponseEntity.ok()
+            .contentType(MediaType.parseMediaType(candidate.pictureType))
+            .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + candidate.pictureName + "\""
+            )
+            .body(ByteArrayResource(candidate.data))
     }
 
     @PostMapping("/uploadFile")
@@ -55,37 +56,43 @@ class FileController {
             throw FileStorageException("Sorry! Filename contains invalid path sequence $fileName")
         }
 
-        val candidate = Candidate(
+        val picture = Picture(
                 pictureName = fileName,
                 pictureType = file.contentType!!,
                 data = file.bytes
         )
 
-        val savedCandidate= storageService.storeFile(candidate)
+        val savedPicture= storageService.storePicture(picture)
 
         val fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                 .path("/downloadFile/")
-                .path(savedCandidate.id.toString())
+                .path(savedPicture.id.toString())
                 .toUriString()
 
-        candidate.apply {
-            pictureUri =  fileDownloadUri
-        }
+        val pictureUri= PictureUri(
+                pictureName = fileName,
+                pictureType = file.contentType!!,
+                pictureUri = fileDownloadUri
+        )
 
-        updateFile(candidate)
+        storageService.storePictureUri(pictureUri)
 
-        return ResponseEntity(UploadFileResponse(file.name, fileDownloadUri, file.contentType), HttpStatus.OK)
+        return ResponseEntity(UploadFileResponse(
+                file.name,
+                fileDownloadUri,
+                file.contentType),
+                HttpStatus.OK)
     }
 
-    @Throws(FileStorageException::class)
-    @PutMapping("/update")
-    fun updateFile(candidate: Candidate) {
-
-        try {
-            storageService.updateFile(candidate)
-
-        } catch (ex: IOException) {
-            throw FileStorageException("Could not store file ${candidate.pictureName} Please try again!", ex)
-        }
-    }
+//    @Throws(FileStorageException::class)
+//    @PutMapping("/update")
+//    fun updateFile(picture: Picture) {
+//
+//        try {
+//            storageService.updateFile(picture)
+//
+//        } catch (ex: IOException) {
+//            throw FileStorageException("Could not store file ${picture.pictureName} Please try again!", ex)
+//        }
+//    }
 }
