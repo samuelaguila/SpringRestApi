@@ -19,3 +19,4 @@ data class PictureUri(
     @Column(name = "profile_Uri")
     var pictureUri: String? = null,
 )
+

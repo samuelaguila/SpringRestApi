@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.io.IOException
+import java.util.HashMap
 
 @RestController
 class FileController {
@@ -26,8 +27,10 @@ class FileController {
 
     @GetMapping("/list")
     @Throws(IOException::class)
-    fun list(): ResponseEntity<List<PictureUri>> {
-        return ResponseEntity(storageService.getAllFiles(), HttpStatus.OK)
+    fun listAll(): Map<String, List<PictureUri>> {
+        val response: MutableMap<String, List<PictureUri>> = HashMap<String, List<PictureUri>>()
+        response["casas"] = storageService.getAllFiles()
+        return response
     }
 
     @GetMapping("/downloadFile/{fileId}")
